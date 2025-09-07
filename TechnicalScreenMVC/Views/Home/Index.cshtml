@@ -1,0 +1,133 @@
+﻿@model IEnumerable<TechnicalScreenMVC.Models.PurchaseDetailViewModel>
+@{
+    ViewData["Title"] = "Purchase Details";
+}
+<div class="row mb-3">
+    <div class="col">
+        <label>Order Number</label>
+        <select id="filterOrderNumber" class="form-control">
+            <option value="">All</option>
+        </select>
+    </div>
+    <div class="col">
+        <label>Item Number</label>
+        <select id="filterItemNumber" class="form-control">
+            <option value="">All</option>
+        </select>
+    </div>
+    <div class="col">
+        <label>Item Name</label>
+        <select id="filterItemName" class="form-control">
+            <option value="">All</option>
+        </select>
+    </div>
+    <div class="col">
+        <label>Description</label>
+        <select id="filterDescription" class="form-control">
+            <option value="">All</option>
+        </select>
+    </div>
+    <div class="col d-flex align-items-end">
+        <button id="clearFilters" class="btn btn-secondary">Clear</button>
+    </div>
+</div>
+
+<table class="table table-striped table-bordered mt-4" id="purchaseDetails">
+    <thead>
+        <tr>
+            <th>Auto ID</th>
+            <th>Order Number</th>
+            <th>Line Number</th>
+            <th>Item Number</th>
+            <th>Item Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Last Modified By</th>
+            <th>Last Modified</th>
+        </tr>
+    </thead>
+    <tbody>
+    @if (Model != null)
+    {
+        foreach (var item in Model)
+        {
+            <tr class="table-row-clickable" style="cursor:pointer"
+                data-PurchaseDetailItemAutoId="@item.PurchaseDetailItemAutoId"
+                data-purchaseorder="@item.PurchaseOrderNumber"
+                data-itemnumber="@item.ItemNumber"
+                data-itemname="@item.ItemName"
+                data-itemdescription="@item.ItemDescription"
+                data-purchaseprice="@item.PurchasePrice"
+                data-purchasequantity="@item.PurchaseQuantity"
+                data-lastmodifiedbyuser="@item.LastModifiedByUser"
+                data-linenumber="@item.LineNumber"
+                data-lastmodifieddatetime="@item.LastModifiedDateTime.ToString("yyyy-MM-ddTHH:mm")">
+                <td>@item.PurchaseDetailItemAutoId</td>
+                <td>@item.PurchaseOrderNumber</td>
+                <td>@item.LineNumber</td>
+                <td>@item.ItemNumber</td>
+                <td>@item.ItemName</td>
+                <td>@item.ItemDescription</td>
+                <td>@item.PurchasePrice</td>
+                <td>@item.PurchaseQuantity</td>
+                <td>@item.LastModifiedByUser</td>
+                <td>@item.LastModifiedDateTime</td>
+            </tr>
+        }
+    }
+    </tbody>
+</table>
+
+<partial name="_AddItemModal" />
+<partial name="_EditItemModal" />
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(function () {
+        var $rows = $('#purchaseDetails tbody tr');
+
+        function getUniqueValues(idx) {
+            var values = $rows.map(function () {
+                return $(this).children().eq(idx).text().trim();
+            }).get();
+
+            var uniqueValues = [...new Set(values)];
+            return $.grep(uniqueValues, function (v) { return v !== ''; });
+        }
+
+        function populateDropdown(selectId, colIdx) {
+            var $select = $('#' + selectId);
+            $select.find('option:not(:first)').remove();
+            $.each(getUniqueValues(colIdx), function (_, val) {
+                $select.append($('<option>', { value: val, text: val }));
+            });
+        }
+        populateDropdown('filterOrderNumber', 1);
+        populateDropdown('filterItemNumber', 3);
+        populateDropdown('filterItemName', 4);
+        populateDropdown('filterDescription', 5);
+
+        function filterRows() {
+            var order = $('#filterOrderNumber').val();
+            var itemNum = $('#filterItemNumber').val();
+            var itemName = $('#filterItemName').val();
+            var desc = $('#filterDescription').val();
+            $rows.each(function () {
+                var $tds = $(this).children();
+                var show = (!order || $tds.eq(1).text().trim() === order)
+                    && (!itemNum || $tds.eq(3).text().trim() === itemNum)
+                    && (!itemName || $tds.eq(4).text().trim() === itemName)
+                    && (!desc || $tds.eq(5).text().trim() === desc);
+                $(this).toggle(show);
+            });
+        }
+        $('#filterOrderNumber, #filterItemNumber, #filterItemName, #filterDescription').on('change', filterRows);
+
+        $('#clearFilters').on('click', function () {
+            $('#filterOrderNumber, #filterItemNumber, #filterItemName, #filterDescription').val('');
+            filterRows();
+        });
+    });
+</script>
